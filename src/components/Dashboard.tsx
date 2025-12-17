@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Clock, CheckCircle2, Wrench, LogOut } from 'lucide-react';
+import { Plus, Clock, CheckCircle2, Wrench, LogOut, Lock, Globe } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import type { Project } from '../types/project';
@@ -13,6 +13,7 @@ interface DashboardProps {
 interface SavedProject {
   id: string;
   project_title: string;
+  is_public: boolean;
   status: string;
   difficulty: string;
   time_estimate: string;
@@ -42,7 +43,12 @@ export function Dashboard({ onNewProject }: DashboardProps) {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setProjects(data || []);
+      setProjects(
+        ((data || []) as any[]).map((p) => ({
+          ...p,
+          is_public: typeof p.is_public === 'boolean' ? p.is_public : false,
+        }))
+      );
     } catch (error) {
       console.error('Error loading projects:', error);
     } finally {
@@ -59,6 +65,25 @@ export function Dashboard({ onNewProject }: DashboardProps) {
       setProjects((prev) => prev.filter((p) => p.id !== projectId));
     } catch (error) {
       console.error('Error deleting project:', error);
+    }
+  };
+
+  const handleToggleVisibility = async (projectId: string, nextIsPublic: boolean) => {
+    try {
+      let query = supabase.from('projects').update({ is_public: nextIsPublic }).eq('id', projectId);
+      if (user?.id) query = query.eq('user_id', user.id);
+
+      const { error } = await query;
+      if (error) throw error;
+
+      setProjects((prev) =>
+        prev.map((p) => (p.id === projectId ? { ...p, is_public: nextIsPublic } : p))
+      );
+
+      window.alert(`Project is now ${nextIsPublic ? 'Public' : 'Private'}`);
+    } catch (error) {
+      console.error('Error updating project visibility:', error);
+      window.alert('Failed to update project visibility');
     }
   };
 
@@ -195,6 +220,21 @@ export function Dashboard({ onNewProject }: DashboardProps) {
                         >
                           DELETE
                         </button>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            void handleToggleVisibility(project.id, !project.is_public);
+                          }}
+                          type="button"
+                          title={project.is_public ? 'Make Private' : 'Make Public'}
+                          className="absolute bottom-4 right-4 z-50 flex items-center justify-center w-10 h-10 bg-white border border-gray-200 rounded-lg shadow hover:shadow-md transition-shadow"
+                        >
+                          {project.is_public ? (
+                            <Globe className="w-5 h-5 text-green-600" />
+                          ) : (
+                            <Lock className="w-5 h-5 text-gray-400" />
+                          )}
+                        </button>
                       </div>
                     );
                   })}
@@ -239,6 +279,21 @@ export function Dashboard({ onNewProject }: DashboardProps) {
                         className="absolute top-4 right-4 z-50 bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2 rounded-lg shadow-lg"
                       >
                         DELETE
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          void handleToggleVisibility(project.id, !project.is_public);
+                        }}
+                        type="button"
+                        title={project.is_public ? 'Make Private' : 'Make Public'}
+                        className="absolute bottom-4 right-4 z-50 flex items-center justify-center w-10 h-10 bg-white border border-gray-200 rounded-lg shadow hover:shadow-md transition-shadow"
+                      >
+                        {project.is_public ? (
+                          <Globe className="w-5 h-5 text-green-600" />
+                        ) : (
+                          <Lock className="w-5 h-5 text-gray-400" />
+                        )}
                       </button>
                     </div>
                   ))}

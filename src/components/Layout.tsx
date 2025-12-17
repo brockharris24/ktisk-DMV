@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { Menu, Search } from 'lucide-react';
 
 interface LayoutProps {
@@ -7,7 +7,6 @@ interface LayoutProps {
 }
 
 export function Layout({ children }: LayoutProps) {
-  const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const closeMenu = () => setIsMenuOpen(false);
@@ -31,14 +30,13 @@ export function Layout({ children }: LayoutProps) {
             <Link to="/dashboard" className="text-gray-700 hover:text-emerald-600 font-semibold transition-colors">
               My Profile
             </Link>
-            <button
-              type="button"
-              onClick={() => navigate('/')}
+            <Link
+              to="/search"
               className="inline-flex items-center gap-2 text-gray-700 hover:text-emerald-600 font-semibold transition-colors"
             >
               <Search className="w-5 h-5" />
               Search
-            </button>
+            </Link>
           </div>
 
           {/* Mobile menu button */}
@@ -76,17 +74,14 @@ export function Layout({ children }: LayoutProps) {
               >
                 My Profile
               </Link>
-              <button
-                type="button"
-                onClick={() => {
-                  closeMenu();
-                  navigate('/');
-                }}
+              <Link
+                to="/search"
+                onClick={closeMenu}
                 className="w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-50 font-semibold inline-flex items-center gap-2"
               >
                 <Search className="w-5 h-5" />
                 Search
-              </button>
+              </Link>
             </div>
           )}
         </nav>

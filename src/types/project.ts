@@ -16,6 +16,7 @@ export interface Project {
   id?: string;
   user_id?: string;
   project_title: string;
+  is_public: boolean;
   difficulty: 'easy' | 'medium' | 'hard';
   time_estimate: string;
   professional_cost: number;

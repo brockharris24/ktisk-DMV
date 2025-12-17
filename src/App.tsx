@@ -10,6 +10,7 @@ import { ProjectDetails } from './components/ProjectDetails';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { Layout } from './components/Layout';
 import { About } from './components/About';
+import { Search } from './components/Search';
 import { supabase } from './lib/supabase';
 import type { Project } from './types/project';
 
@@ -18,7 +19,6 @@ function ProjectPreviewPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
-  const [loading, setLoading] = useState(false);
 
   const project = location.state?.project as Project | undefined;
 
@@ -29,13 +29,13 @@ function ProjectPreviewPage() {
   const saveAndStartProject = async () => {
     if (!project || !user) return;
 
-    setLoading(true);
     try {
       const { data, error } = await supabase
         .from('projects')
         .insert({
           user_id: user.id,
           project_title: project.project_title,
+          is_public: project.is_public ?? false,
           status: 'in_progress',
           difficulty: project.difficulty,
           time_estimate: project.time_estimate,
@@ -45,18 +45,16 @@ function ProjectPreviewPage() {
           tools_json: project.tools,
           completed_steps: [],
           owned_items: [],
-        })
+        } as any)
         .select()
         .single();
 
       if (error) throw error;
 
-      navigate(`/project/${data.id}`);
+      navigate(`/project/${(data as { id: string }).id}`);
     } catch (err) {
       console.error('Error saving project:', err);
       alert(err instanceof Error ? err.message : 'Failed to save project');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -97,14 +95,15 @@ function ProjectGuidePage() {
         id: data.id,
         user_id: data.user_id,
         project_title: data.project_title,
+        is_public: (data as any).is_public ?? false,
         difficulty: data.difficulty as 'easy' | 'medium' | 'hard',
         time_estimate: data.time_estimate,
         professional_cost: data.professional_cost,
         diy_cost: data.diy_cost,
-        steps: data.steps_json as Project['steps'],
-        tools: data.tools_json as Project['tools'],
-        completed_steps: data.completed_steps as number[],
-        owned_items: data.owned_items as number[],
+        steps: data.steps_json as unknown as Project['steps'],
+        tools: data.tools_json as unknown as Project['tools'],
+        completed_steps: data.completed_steps as unknown as number[],
+        owned_items: data.owned_items as unknown as number[],
         status: data.status,
       });
     } catch (err) {
@@ -178,6 +177,7 @@ function AppContent() {
       <Route path="/auth" element={<Layout><Auth /></Layout>} />
       <Route path="/project-details" element={<Layout><ProjectDetails /></Layout>} />
       <Route path="/about" element={<Layout><About /></Layout>} />
+      <Route path="/search" element={<Layout><Search /></Layout>} />
       <Route
         path="/project/preview"
         element={
