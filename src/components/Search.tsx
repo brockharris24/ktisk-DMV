@@ -6,12 +6,15 @@ import { useAuth } from '../contexts/AuthContext';
 
 interface SearchResultProject {
   id: string;
-  project_title: string;
+  project_title?: string;
+  title?: string;
   status: string;
   difficulty: string;
   time_estimate: string;
   professional_cost: number;
   diy_cost: number;
+  is_public?: boolean;
+  user_id?: string;
 }
 
 export function Search() {
@@ -29,15 +32,22 @@ export function Search() {
 
     setIsSearching(true);
     try {
-      let query = supabase
-        .from('projects')
-        .select('id, project_title, status, difficulty, time_estimate, professional_cost, diy_cost')
-        .ilike('project_title', `%${term}%`)
-        .order('created_at', { ascending: false });
+      console.log('Searching as:', user ? 'User' : 'Guest');
 
-      if (user?.id) {
-        query = query.eq('user_id', user.id);
-      }
+      // Note: Using 'title' here per requested behavior. The UI renders either `project_title` or `title`.
+      const query = !user
+        ? supabase
+            .from('projects')
+            .select('*')
+            .ilike('title' as any, `%${term}%`)
+            .eq('is_public', true)
+            .order('created_at', { ascending: false })
+        : supabase
+            .from('projects')
+            .select('*')
+            .ilike('title' as any, `%${term}%`)
+            .or(`is_public.eq.true,user_id.eq.${user.id}`)
+            .order('created_at', { ascending: false });
 
       const { data, error } = await query;
       if (error) throw error;
@@ -102,6 +112,7 @@ export function Search() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {results.map((project) => {
+              const displayTitle = project.project_title ?? project.title ?? 'Untitled Project';
               const savings = project.professional_cost - project.diy_cost;
               const difficultyClass = difficultyColors[project.difficulty] || 'bg-gray-100 text-gray-700';
 
@@ -112,7 +123,7 @@ export function Search() {
                   className="block bg-white rounded-xl p-6 shadow-sm border-2 border-gray-200 hover:border-emerald-300 hover:shadow-md transition-all"
                 >
                   <div className="flex items-start justify-between mb-3">
-                    <h3 className="font-bold text-gray-900 text-lg">{project.project_title}</h3>
+                    <h3 className="font-bold text-gray-900 text-lg">{displayTitle}</h3>
                     <span className="text-xs font-semibold text-gray-500 capitalize">{project.status}</span>
                   </div>
 
