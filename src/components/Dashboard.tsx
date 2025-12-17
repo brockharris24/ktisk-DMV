@@ -227,12 +227,22 @@ export function Dashboard({ onNewProject }: DashboardProps) {
                           }}
                           type="button"
                           title={project.is_public ? 'Make Private' : 'Make Public'}
-                          className="absolute bottom-4 right-4 z-50 flex items-center justify-center w-10 h-10 bg-white border border-gray-200 rounded-lg shadow hover:shadow-md transition-shadow"
+                          className={`absolute bottom-4 right-4 z-50 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full font-semibold text-xs border shadow-sm hover:shadow transition-shadow ${
+                            project.is_public
+                              ? 'text-green-600 bg-green-50 border-green-200'
+                              : 'text-gray-500 bg-gray-100 border-gray-200'
+                          }`}
                         >
                           {project.is_public ? (
-                            <Globe className="w-5 h-5 text-green-600" />
+                            <>
+                              <Globe className="w-4 h-4" />
+                              <span>Public</span>
+                            </>
                           ) : (
-                            <Lock className="w-5 h-5 text-gray-400" />
+                            <>
+                              <Lock className="w-4 h-4" />
+                              <span>Private</span>
+                            </>
                           )}
                         </button>
                       </div>
@@ -287,12 +297,22 @@ export function Dashboard({ onNewProject }: DashboardProps) {
                         }}
                         type="button"
                         title={project.is_public ? 'Make Private' : 'Make Public'}
-                        className="absolute bottom-4 right-4 z-50 flex items-center justify-center w-10 h-10 bg-white border border-gray-200 rounded-lg shadow hover:shadow-md transition-shadow"
+                        className={`absolute bottom-4 right-4 z-50 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full font-semibold text-xs border shadow-sm hover:shadow transition-shadow ${
+                          project.is_public
+                            ? 'text-green-600 bg-green-50 border-green-200'
+                            : 'text-gray-500 bg-gray-100 border-gray-200'
+                        }`}
                       >
                         {project.is_public ? (
-                          <Globe className="w-5 h-5 text-green-600" />
+                          <>
+                            <Globe className="w-4 h-4" />
+                            <span>Public</span>
+                          </>
                         ) : (
-                          <Lock className="w-5 h-5 text-gray-400" />
+                          <>
+                            <Lock className="w-4 h-4" />
+                            <span>Private</span>
+                          </>
                         )}
                       </button>
                     </div>
